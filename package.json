@@ -1,0 +1,19 @@
+{
+  "name": "medicine-search-assessment",
+  "version": "1.0.0",
+  "description": "Technical assessment: build a searchable (and optionally sortable) medicine catalog UI",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve . -p 3000",
+    "dev": "npx --yes live-server --port=3000 --open=index.html"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "assessment",
+    "javascript",
+    "frontend"
+  ],
+  "license": "UNLICENSED"
+}

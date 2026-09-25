@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medicine Catalog — Technical Assessment</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <h1>Medicine Catalog</h1>
+        <p class="subtitle">
+          Build search (required) and sorting (bonus) over the medicine dataset.
+        </p>
+      </header>
+
+      <!--
+        Implement your search / filter controls here.
+        Suggested: a text search input + filters for category, form, etc.
+      -->
+      <section class="controls" aria-label="Search and filters">
+        <!-- TODO: add search input and any filter controls -->
+      </section>
+
+      <section class="results" aria-label="Medicine results">
+        <p id="result-count" class="result-count"></p>
+        <!--
+          Render the medicine list / table here.
+          You may use a <table>, cards, or any clear layout.
+        -->
+        <div id="medicine-list">
+          <p class="placeholder">Load and display medicines from data/medicines.json</p>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
