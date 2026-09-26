@@ -25,7 +25,15 @@ const state = {
   expiryTo: "",
 
   sortField: "none",
-  sortDirection: "asc"
+  sortDirection: "asc",
+
+  // Virtualization state
+  virtualization: {
+    rowHeight: 52, // Approximate row height in pixels
+    bufferSize: 5, // Extra rows to render above/below viewport
+    scrollTop: 0,
+    containerHeight: 0
+  }
 };
 
 
@@ -82,7 +90,10 @@ const elements = {
     document.getElementById("tableContainer"),
 
   tableBody:
-    document.getElementById("medicineTableBody")
+    document.getElementById("medicineTableBody"),
+
+  tableWrapper:
+    document.querySelector(".table-wrapper")
 };
 
 
@@ -160,11 +171,90 @@ function attachEventListeners() {
     "click",
     loadMedicines
   );
+
+  // Virtualization scroll listener
+  if (elements.tableWrapper) {
+    elements.tableWrapper.addEventListener(
+      "scroll",
+      handleScroll
+    );
+
+    // Track container resize
+    const resizeObserver = new ResizeObserver(
+      handleContainerResize
+    );
+
+    resizeObserver.observe(elements.tableWrapper);
+  }
 }
 
-//
+/* =========================================
+   VIRTUALIZATION
+========================================= */
 
+function handleScroll(event) {
+  state.virtualization.scrollTop = event.target.scrollTop;
+  renderVirtualizedRows();
+}
 
+function handleContainerResize(entries) {
+  if (entries && entries[0]) {
+    state.virtualization.containerHeight = entries[0].contentRect.height;
+  }
+  renderVirtualizedRows();
+}
+
+function getVisibleRange() {
+  const { rowHeight, bufferSize, scrollTop, containerHeight } = state.virtualization;
+  const totalRows = state.filteredMedicines.length;
+
+  if (totalRows === 0) {
+    return { start: 0, end: 0 };
+  }
+
+  const start = Math.max(0, Math.floor(scrollTop / rowHeight) - bufferSize);
+  const visibleCount = Math.ceil(containerHeight / rowHeight);
+  const end = Math.min(totalRows, start + visibleCount + (bufferSize * 2));
+
+  return { start, end };
+}
+
+function renderVirtualizedRows() {
+  const results = state.filteredMedicines;
+
+  if (results.length === 0) {
+    return;
+  }
+
+  const { start, end } = getVisibleRange();
+  const tbody = elements.tableBody;
+
+  if (!tbody) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  const totalHeight = results.length * state.virtualization.rowHeight;
+
+  // Top padding for rows above viewport
+  const topPadding = document.createElement("tr");
+  topPadding.style.height = `${start * state.virtualization.rowHeight}px`;
+  fragment.appendChild(topPadding);
+
+  // Render only visible rows
+  for (let i = start; i < end; i++) {
+    fragment.appendChild(createMedicineRow(results[i]));
+  }
+
+  // Bottom padding for rows below viewport
+  const bottomPadding = document.createElement("tr");
+  const bottomHeight = totalHeight - (end * state.virtualization.rowHeight);
+  bottomPadding.style.height = `${Math.max(0, bottomHeight)}px`;
+  fragment.appendChild(bottomPadding);
+
+  tbody.innerHTML = "";
+  tbody.appendChild(fragment);
+}
 
 /* =========================================
    DATA LOADING
@@ -639,8 +729,6 @@ function renderResults() {
   elements.resultsCount.textContent =
     formatResultsCount(results.length);
 
-  elements.tableBody.innerHTML = "";
-
   if (results.length === 0) {
     elements.tableContainer.classList.add(
       "hidden"
@@ -677,18 +765,8 @@ function renderResults() {
     "hidden"
   );
 
-  const fragment =
-    document.createDocumentFragment();
-
-  results.forEach((medicine) => {
-    fragment.appendChild(
-      createMedicineRow(medicine)
-    );
-  });
-
-  elements.tableBody.appendChild(
-    fragment
-  );
+  // Use virtualized rendering for better performance with large datasets
+  renderVirtualizedRows();
 }
 
 
